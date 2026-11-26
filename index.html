@@ -169,13 +169,14 @@
         <span id="previewTitle">LIVE OUTPUT</span>
         <div style="display:flex; gap:6px; align-items:center;">
           <span id="previewTypeBadge">Preview</span>
+          <button id="liveRunBtn" class="btn-active" style="display:none; padding:2px 6px; font-size:11px;" onclick="app.toggleLiveRun()" title="Auto-run Python / JS while typing">Live: ON</button>
           <button id="installPyPkgBtn" style="display:none; padding:2px 6px; font-size:11px;" onclick="app.installPyPackage()" title="Install Python package via micropip">+ Pkg</button>
           <button id="clearConsoleBtn" style="display:none; padding:2px 6px; font-size:11px;" onclick="app.clearPyConsole()">Clear</button>
           <button class="mobile-only-btn" onclick="app.toggleSplitView(false)">Back to Code</button>
         </div>
       </div>
       <div id="md-preview"></div>
-      <iframe id="html-preview" sandbox="allow-scripts allow-modals"></iframe>
+      <iframe id="html-preview" sandbox="allow-scripts allow-modals allow-forms allow-popups"></iframe>
       <div id="py-console"></div>
     </div>
   </div>

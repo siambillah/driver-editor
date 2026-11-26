@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sb-editor-text-v2';
+const CACHE_NAME = 'sb-editor-text-v4';
 const APP_SHELL = [
   './',
   './index.html',

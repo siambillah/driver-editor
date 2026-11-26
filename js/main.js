@@ -73,6 +73,8 @@ const editor = CodeMirror(document.getElementById('editor-pane'), {
     'F1': () => modals.openCommandPalette(),
     'Ctrl-Shift-F': () => modals.openSearchAllModal(),
     'Cmd-Shift-F': () => modals.openSearchAllModal(),
+    'Ctrl-Enter': () => tools.runActiveCode(),
+    'Cmd-Enter': () => tools.runActiveCode(),
     'Tab': (cm) => {
       if (cm.somethingSelected()) cm.indentSelection('add');
       else cm.replaceSelection('    ', 'end');
@@ -299,6 +301,7 @@ function switchTab(id) {
   if (!tab) return;
   activeTabId = id;
   editor.swapDoc(tab.doc);
+  editor.setOption('mode', tab.mode);
   const langSelect = document.getElementById('langSelect');
   if (langSelect) langSelect.value = tab.mode;
   document.getElementById('md-toolbar').style.display = tab.mode === 'markdown' ? 'flex' : 'none';
@@ -361,12 +364,14 @@ function renameTab(id) {
   const meta = detectMeta(tab.title);
   tab.mode = meta.mode;
   tab.mimeType = meta.mimeType;
-  tab.doc.setOption('mode', tab.mode);
+  tab.doc.modeOption = tab.mode;
 
   if (tab.id === activeTabId) {
+    editor.setOption('mode', tab.mode);
     document.getElementById('langSelect').value = tab.mode;
     document.getElementById('md-toolbar').style.display = tab.mode === 'markdown' ? 'flex' : 'none';
     updateRunButtonLabel(tab);
+    tools.setPreviewMode('auto');
     if (tools.isPreviewOpen()) tools.renderPreview();
   }
   renderTabBar();
@@ -680,7 +685,8 @@ function getCommands() {
     { category: 'Drive', label: 'Connect / Reconnect Google Drive', run: () => drive.handleAuth() },
     { category: 'Drive', label: 'Open Google Drive Explorer', run: () => drive.openDriveBrowser() },
     { category: 'Drive', label: 'Reload Active Tab from Google Drive', run: () => drive.reloadDriveTab(getActiveTab()) },
-    { category: 'Run', label: 'Run Active File (Smart)', shortcut: '▶ Run', run: () => tools.runActiveCode() },
+    { category: 'Run', label: 'Run Active File (Smart)', shortcut: 'Ctrl+Enter', run: () => tools.runActiveCode() },
+    { category: 'Run', label: 'Toggle Live Python / JS Execution', run: () => tools.toggleLiveRun() },
     { category: 'Run', label: 'Run Python (Pyodide)', run: () => tools.runPythonCode() },
     { category: 'Run', label: 'Install Python Package (micropip)', run: () => tools.installPyPackage() },
     { category: 'Run', label: 'Run JavaScript Console', run: () => tools.runJavaScriptCode() },
@@ -737,7 +743,7 @@ applyWordWrap(settings.wordWrap);
 applyAutoSave(settings.autoSave);
 
 /* ==================== APP STARTUP & PWA REGISTRATION ==================== */
-window.onload = () => {
+function startApp() {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (raw) {
     try {
@@ -778,20 +784,31 @@ window.onload = () => {
     } catch (e) {}
   }
 
-  drive.initDrive({
-    getTabs: () => tabs,
-    getActiveTab,
-    createTab,
-    switchTab,
-    setStatus,
-    onTabSaved: () => { renderTabBar(); saveSession(); }
-  }, driveState);
+  const initDriveSafely = () => {
+    drive.initDrive({
+      getTabs: () => tabs,
+      getActiveTab,
+      createTab,
+      switchTab,
+      setStatus,
+      onTabSaved: () => { renderTabBar(); saveSession(); }
+    }, driveState);
+  };
+
+  initDriveSafely();
+  window.addEventListener('load', initDriveSafely, { once: true });
 
   // Register Service Worker for offline PWA support
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
   }
-};
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', startApp, { once: true });
+} else {
+  startApp();
+}
 
 // Expose clean API to HTML buttons
 window.app = {
@@ -810,6 +827,7 @@ window.app = {
   duplicateLineOrSelection,
   nextBookmark: () => nextBookmark(1),
   toggleSplitView: tools.toggleSplitView,
+  toggleLiveRun: tools.toggleLiveRun,
   toggleScrollSync: tools.toggleScrollSync,
   exportMarkdownHtml: tools.exportMarkdownHtml,
   runActiveCode: tools.runActiveCode,

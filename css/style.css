@@ -127,7 +127,7 @@ body.dark-ui .bookmark-marker { color: #64b5f6; }
 #md-preview th, #md-preview td { border: 1px solid var(--border); padding: 6px 10px; }
 #md-preview blockquote { margin: 8px 0; padding: 4px 12px; border-left: 3px solid var(--accent); color: var(--text-muted); }
 #md-preview .mermaid { background: #fff; padding: 10px; border-radius: 6px; text-align: center; margin: 10px 0; }
-#html-preview { flex: 1; width: 100%; border: none; background: #fff; display: none; }
+#html-preview { flex: 1; width: 100%; height: 100%; min-height: 0; border: none; background: #fff; display: none; }
 #py-console { flex: 1; background: #14161b; color: #e6e9ef; font-family: 'Consolas', monospace; font-size: 13.5px; padding: 12px; overflow-y: auto; display: none; white-space: pre-wrap; word-break: break-word; }
 .py-err { color: #ff6b6b; }
 .py-warn { color: #f6c945; }
@@ -203,8 +203,8 @@ body.dark-ui .bookmark-marker { color: #64b5f6; }
   .toolbar-group { flex-wrap: nowrap; }
   .mobile-keys-bar { display: flex; }
   #resizer { display: none !important; }
-  #workspace.mobile-show-preview #editor-pane { display: none; }
-  #workspace.mobile-show-preview #preview-pane { display: flex; flex: 1; width: 100%; }
+  #workspace.mobile-show-preview #editor-pane { display: none !important; }
+  #workspace.mobile-show-preview #preview-pane { display: flex !important; flex: 1; width: 100%; }
   .mobile-only-btn { display: inline-block; background: #0078d7; color: #fff; border: none; }
   #wordStats { display: none; }
 }

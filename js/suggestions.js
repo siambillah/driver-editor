@@ -104,7 +104,7 @@ export function registerCustomHints(CodeMirror) {
   CodeMirror.registerHelper("hint", "smartHint", function (editor) {
     const cursor = editor.getCursor();
     const token = editor.getTokenAt(cursor);
-    const mode = editor.getOption("mode");
+    const mode = editor.getDoc()?.modeOption || editor.getOption("mode");
 
     let start = token.start;
     let end = cursor.ch;

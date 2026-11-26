@@ -6,6 +6,7 @@ let accessToken = null;
 let folderStack = [{ id: 'root', name: 'My Drive' }];
 let pendingDriveBrowser = false;
 let pendingInitialState = null;
+let handledCreateAction = false;
 let callbacks = {};
 
 async function driveFetch(url, options = {}) {
@@ -44,10 +45,11 @@ function formatDate(iso) {
 
 export function initDrive(cb, initialState = null) {
   callbacks = cb;
-  pendingInitialState = initialState;
+  if (initialState && !pendingInitialState) pendingInitialState = initialState;
 
-  // Handle Google Drive "+ New" create action immediately even before auth
-  if (initialState?.action === 'create' && initialState.folderId) {
+  // Handle Google Drive "+ New" create action once even before auth
+  if (!handledCreateAction && initialState?.action === 'create' && initialState.folderId) {
+    handledCreateAction = true;
     callbacks.createTab({
       title: 'untitled.txt',
       content: '',
@@ -57,7 +59,7 @@ export function initDrive(cb, initialState = null) {
     callbacks.setStatus('New Drive file ready — connect Drive & press Ctrl+S to save in folder.');
   }
 
-  if (typeof google === 'undefined') return;
+  if (tokenClient || typeof google === 'undefined') return;
 
   tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: CLIENT_ID,

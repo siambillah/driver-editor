@@ -5,7 +5,12 @@ let setStatus = null;
 let isSplitOpen = true;
 let previewMode = 'auto';
 let scrollSyncEnabled = true;
+let liveRunEnabled = true;
+let liveRunTimer = null;
 let pyodideInstance = null;
+let pyodideLoadingPromise = null;
+let isPyRunning = false;
+let pendingLivePy = false;
 let mermaidLoaded = false;
 let katexLoaded = false;
 let jsRunnerFrame = null;
@@ -64,10 +69,14 @@ export function toggleScrollSync() {
   setStatus(`Preview scroll sync ${scrollSyncEnabled ? 'enabled' : 'disabled'}`);
 }
 
+function getCurrentMode() {
+  return getActiveTab?.()?.mode || editor?.getDoc?.()?.modeOption || editor?.getOption('mode') || 'text/plain';
+}
+
 function setupScrollSync() {
   editor.on('scroll', () => {
     if (!scrollSyncEnabled || !isSplitOpen || previewMode !== 'auto') return;
-    if (editor.getOption('mode') !== 'markdown') return;
+    if (getCurrentMode() !== 'markdown') return;
     const info = editor.getScrollInfo();
     const maxEditorScroll = info.height - info.clientHeight;
     if (maxEditorScroll <= 0) return;
@@ -93,16 +102,19 @@ function bundleHtmlWithOpenTabs(html) {
     if (!byName.has(base)) byName.set(base, t);
   });
 
-  // Inline matching local CSS tabs
+  // Inline matching local CSS tabs (supports both rel-before-href and href-before-rel)
   let bundled = html.replace(
-    /<link\b[^>]*rel=["']stylesheet["'][^>]*href=["']([^"']+)["'][^>]*\/?>/gi,
-    (match, href) => {
-      const key = href.replace(/^\.\//, '').toLowerCase();
+    /<link\b[^>]*>/gi,
+    (tag) => {
+      if (!/rel=["']stylesheet["']/i.test(tag)) return tag;
+      const hrefMatch = tag.match(/href=["']([^"']+)["']/i);
+      if (!hrefMatch) return tag;
+      const key = hrefMatch[1].replace(/^\.\//, '').toLowerCase();
       const target = byName.get(key) || byName.get(key.split('/').pop());
       if (target) {
         return `<style data-bundled="${target.title}">\n${target.doc.getValue()}\n</style>`;
       }
-      return match;
+      return tag;
     }
   );
 
@@ -192,30 +204,101 @@ async function enhanceMarkdownPreview(mdDiv) {
   }
 }
 
+export function toggleLiveRun() {
+  liveRunEnabled = !liveRunEnabled;
+  const btn = document.getElementById('liveRunBtn');
+  if (btn) {
+    btn.textContent = `Live: ${liveRunEnabled ? 'ON' : 'OFF'}`;
+    btn.classList.toggle('btn-active', liveRunEnabled);
+  }
+  setStatus(`Live code execution ${liveRunEnabled ? 'enabled' : 'disabled'}`);
+  if (liveRunEnabled && isSplitOpen) renderPreview();
+}
+
+function scheduleLiveRun(kind) {
+  clearTimeout(liveRunTimer);
+  const delay = kind === 'python' ? 600 : 450;
+  liveRunTimer = setTimeout(() => {
+    if (!isSplitOpen || !liveRunEnabled) return;
+    const mode = getCurrentMode();
+    const tab = getActiveTab();
+    const isJson = tab?.title?.toLowerCase().endsWith('.json');
+    if (kind === 'python' && mode === 'python') {
+      runPythonCode({ isLive: true });
+    } else if (kind === 'javascript' && mode === 'javascript' && !isJson) {
+      runJavaScriptCode({ isLive: true });
+    }
+  }, delay);
+}
+
+function showConsolePane(kind) {
+  const mdDiv = document.getElementById('md-preview');
+  const htmlFrame = document.getElementById('html-preview');
+  const pyConsole = document.getElementById('py-console');
+  const clearBtn = document.getElementById('clearConsoleBtn');
+  const pkgBtn = document.getElementById('installPyPkgBtn');
+  const liveBtn = document.getElementById('liveRunBtn');
+  const badge = document.getElementById('previewTypeBadge');
+
+  const isPy = kind === 'python';
+  mdDiv.style.display = 'none';
+  htmlFrame.style.display = 'none';
+  pyConsole.style.display = 'block';
+  clearBtn.style.display = 'inline-block';
+  pkgBtn.style.display = isPy ? 'inline-block' : 'none';
+  if (liveBtn) {
+    liveBtn.style.display = 'inline-block';
+    liveBtn.textContent = `Live: ${liveRunEnabled ? 'ON' : 'OFF'}`;
+    liveBtn.classList.toggle('btn-active', liveRunEnabled);
+  }
+  badge.textContent = isPy
+    ? (liveRunEnabled ? 'Python Live' : 'Python Console')
+    : (liveRunEnabled ? 'JS Live' : 'JS Console');
+}
+
 export function renderPreview() {
   const mdDiv = document.getElementById('md-preview');
   const htmlFrame = document.getElementById('html-preview');
   const pyConsole = document.getElementById('py-console');
   const clearBtn = document.getElementById('clearConsoleBtn');
   const pkgBtn = document.getElementById('installPyPkgBtn');
+  const liveBtn = document.getElementById('liveRunBtn');
   const badge = document.getElementById('previewTypeBadge');
 
-  if (previewMode === 'python' || previewMode === 'javascript') {
-    mdDiv.style.display = 'none';
-    htmlFrame.style.display = 'none';
-    pyConsole.style.display = 'block';
-    clearBtn.style.display = 'inline-block';
-    pkgBtn.style.display = previewMode === 'python' ? 'inline-block' : 'none';
-    badge.textContent = previewMode === 'python' ? 'Python Console' : 'JS Console';
+  const mode = getCurrentMode();
+  const tab = getActiveTab();
+  const isJson = tab?.title?.toLowerCase().endsWith('.json');
+  const content = editor.getValue();
+
+  const showPythonConsole = previewMode === 'python' || (previewMode === 'auto' && mode === 'python');
+  const showJsConsole = previewMode === 'javascript' || (previewMode === 'auto' && mode === 'javascript' && !isJson);
+
+  if (showPythonConsole || showJsConsole) {
+    showConsolePane(showPythonConsole ? 'python' : 'javascript');
+
+    if (!content.trim()) {
+      pyConsole.innerHTML = `<span class="py-info">Write ${showPythonConsole ? 'Python' : 'JavaScript'} code on the left to see live output...</span>\n`;
+    } else if (!liveRunEnabled) {
+      if (!pyConsole.innerHTML.trim()) {
+        pyConsole.innerHTML = `<span class="py-info">Live run is OFF. Click ▶ Run (or press Ctrl+Enter) to execute.</span>\n`;
+      }
+    } else if (showPythonConsole && /\binput\s*\(/.test(content)) {
+      clearTimeout(liveRunTimer);
+      pyConsole.innerHTML = `<span class="py-info">This script uses input() — click ▶ Run Py (or Ctrl+Enter) to run interactively.</span>\n`;
+    } else if (showJsConsole && /\b(alert|prompt|confirm)\s*\(/.test(content)) {
+      clearTimeout(liveRunTimer);
+      pyConsole.innerHTML = `<span class="py-info">This script uses browser dialog calls — click ▶ Run JS (or Ctrl+Enter) to run.</span>\n`;
+    } else {
+      scheduleLiveRun(showPythonConsole ? 'python' : 'javascript');
+    }
     return;
   }
 
+  clearTimeout(liveRunTimer);
   pyConsole.style.display = 'none';
   clearBtn.style.display = 'none';
   pkgBtn.style.display = 'none';
-
-  const mode = editor.getOption('mode');
-  const content = editor.getValue();
+  if (liveBtn) liveBtn.style.display = 'none';
 
   if (mode === 'htmlmixed') {
     mdDiv.style.display = 'none';
@@ -270,7 +353,7 @@ ${rendered}
   setStatus(`Exported "${title}.html" ✓`);
 }
 
-export function toggleSplitView(forceState = null) {
+export function toggleSplitView(forceState = null, { skipRender = false } = {}) {
   isSplitOpen = forceState !== null ? forceState : !isSplitOpen;
   const isMobile = window.innerWidth <= 768;
   const workspace = document.getElementById('workspace');
@@ -283,7 +366,7 @@ export function toggleSplitView(forceState = null) {
   }
 
   document.getElementById('splitBtn').classList.toggle('btn-active', isSplitOpen);
-  if (isSplitOpen) renderPreview();
+  if (isSplitOpen && !skipRender) renderPreview();
   editor.refresh();
 }
 
@@ -317,7 +400,7 @@ function setupResizer() {
 // Smart Run dispatcher based on active file/mode
 export function runActiveCode() {
   const tab = getActiveTab();
-  const mode = editor.getOption('mode');
+  const mode = getCurrentMode();
   const isJson = tab?.title?.toLowerCase().endsWith('.json');
 
   if (mode === 'python') {
@@ -335,48 +418,88 @@ export function runActiveCode() {
 }
 
 async function ensurePyodide(pyConsole) {
-  if (!pyodideInstance) {
-    pyConsole.innerHTML += '<span class="py-info">Loading Pyodide Python runtime (first time only)...</span>\n';
-    await loadScriptOnce('https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js');
-    pyodideInstance = await loadPyodide();
-    pyodideInstance.globals.set('_browser_input', (msg = '') => {
-      const val = window.prompt(msg || 'Python input():');
-      return val === null ? '' : val;
+  if (pyodideInstance) return pyodideInstance;
+  if (!pyodideLoadingPromise) {
+    pyConsole.innerHTML = '<span class="py-info">Loading Pyodide Python runtime (first time only)...</span>\n';
+    pyodideLoadingPromise = (async () => {
+      await loadScriptOnce('https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js');
+      const inst = await loadPyodide();
+      inst.globals.set('_browser_input', (msg = '') => {
+        const val = window.prompt(msg || 'Python input():');
+        return val === null ? '' : val;
+      });
+      inst.runPython(`import builtins\nbuiltins.input = _browser_input`);
+      pyodideInstance = inst;
+      return inst;
+    })().catch((err) => {
+      pyodideLoadingPromise = null;
+      throw err;
     });
-    pyodideInstance.runPython(`import builtins\nbuiltins.input = _browser_input`);
   }
-  return pyodideInstance;
+  return pyodideLoadingPromise;
 }
 
-export async function runPythonCode() {
-  previewMode = 'python';
-  toggleSplitView(true);
+export async function runPythonCode({ isLive = false } = {}) {
+  clearTimeout(liveRunTimer);
+  if (!isLive) {
+    if (getCurrentMode() !== 'python') previewMode = 'python';
+    toggleSplitView(true, { skipRender: true });
+    showConsolePane('python');
+  }
   const pyConsole = document.getElementById('py-console');
 
-  try {
-    await ensurePyodide(pyConsole);
-  } catch (e) {
-    pyConsole.innerHTML += `<span class="py-err">Failed to load Pyodide: ${escapeHtml(e.message)}</span>\n`;
+  if (isPyRunning) {
+    if (isLive) pendingLivePy = true;
     return;
   }
 
-  const code = editor.getValue();
-  const t0 = performance.now();
-  pyConsole.innerHTML += `<span class="py-info">&gt;&gt;&gt; Running ${escapeHtml(getActiveTab()?.title || 'script.py')}...</span>\n`;
+  isPyRunning = true;
   try {
-    await pyodideInstance.loadPackagesFromImports(code);
-    pyodideInstance.runPython(`import sys, io\nsys.stdout = io.StringIO()\nsys.stderr = io.StringIO()`);
-    await pyodideInstance.runPythonAsync(code);
-    const out = pyodideInstance.runPython('sys.stdout.getvalue()');
-    const err = pyodideInstance.runPython('sys.stderr.getvalue()');
-    if (out) pyConsole.innerHTML += escapeHtml(out);
-    if (err) pyConsole.innerHTML += `<span class="py-err">${escapeHtml(err)}</span>`;
-    const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
-    pyConsole.innerHTML += `<span class="py-ok">[Finished in ${elapsed}s]</span>\n\n`;
-  } catch (err) {
-    pyConsole.innerHTML += `<span class="py-err">${escapeHtml(err.message)}</span>\n\n`;
+    try {
+      await ensurePyodide(pyConsole);
+    } catch (e) {
+      pyConsole.innerHTML = `<span class="py-err">Failed to load Pyodide: ${escapeHtml(e.message)}</span>\n`;
+      return;
+    }
+
+    const code = editor.getValue();
+    const title = getActiveTab()?.title || 'script.py';
+    const t0 = performance.now();
+
+    if (isLive) {
+      pyConsole.innerHTML = `<span class="py-info">&gt;&gt;&gt; Live Output (${escapeHtml(title)})</span>\n`;
+    } else {
+      pyConsole.innerHTML += `<span class="py-info">&gt;&gt;&gt; Running ${escapeHtml(title)}...</span>\n`;
+    }
+
+    let ns = null;
+    try {
+      await pyodideInstance.loadPackagesFromImports(code);
+      pyodideInstance.runPython(`import sys, io\nsys.stdout = io.StringIO()\nsys.stderr = io.StringIO()`);
+      ns = pyodideInstance.toPy({ __name__: '__main__' });
+      await pyodideInstance.runPythonAsync(code, { globals: ns });
+      const out = pyodideInstance.runPython('sys.stdout.getvalue()');
+      const err = pyodideInstance.runPython('sys.stderr.getvalue()');
+      if (out) pyConsole.innerHTML += escapeHtml(out);
+      if (err) pyConsole.innerHTML += `<span class="py-err">${escapeHtml(err)}</span>`;
+      if (!out && !err) pyConsole.innerHTML += `<span class="py-info">(No output)</span>\n`;
+      const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
+      pyConsole.innerHTML += `<span class="py-ok">[Finished in ${elapsed}s]</span>\n${isLive ? '' : '\n'}`;
+    } catch (err) {
+      pyConsole.innerHTML += `<span class="py-err">${escapeHtml(err.message)}</span>\n${isLive ? '' : '\n'}`;
+    } finally {
+      if (ns) ns.destroy();
+    }
+    pyConsole.scrollTop = pyConsole.scrollHeight;
+  } finally {
+    isPyRunning = false;
+    if (pendingLivePy) {
+      pendingLivePy = false;
+      if (isSplitOpen && liveRunEnabled && getCurrentMode() === 'python') {
+        runPythonCode({ isLive: true });
+      }
+    }
   }
-  pyConsole.scrollTop = pyConsole.scrollHeight;
 }
 
 export async function installPyPackage() {
@@ -412,11 +535,20 @@ function setupJsMessageListener() {
   });
 }
 
-export function runJavaScriptCode() {
-  previewMode = 'javascript';
-  toggleSplitView(true);
+export function runJavaScriptCode({ isLive = false } = {}) {
+  clearTimeout(liveRunTimer);
+  if (!isLive) {
+    if (getCurrentMode() !== 'javascript') previewMode = 'javascript';
+    toggleSplitView(true, { skipRender: true });
+    showConsolePane('javascript');
+  }
   const pyConsole = document.getElementById('py-console');
-  pyConsole.innerHTML += `<span class="py-info">&gt;&gt;&gt; Running ${escapeHtml(getActiveTab()?.title || 'script.js')}...</span>\n`;
+  const title = getActiveTab()?.title || 'script.js';
+  if (isLive) {
+    pyConsole.innerHTML = `<span class="py-info">&gt;&gt;&gt; Live Output (${escapeHtml(title)})</span>\n`;
+  } else {
+    pyConsole.innerHTML += `<span class="py-info">&gt;&gt;&gt; Running ${escapeHtml(title)}...</span>\n`;
+  }
 
   if (jsRunnerFrame) jsRunnerFrame.remove();
   jsRunnerFrame = document.createElement('iframe');
@@ -469,7 +601,7 @@ export function formatJSON() {
 
 export function formatActiveCode() {
   const tab = getActiveTab();
-  const mode = editor.getOption('mode');
+  const mode = getCurrentMode();
   const title = (tab?.title || '').toLowerCase();
   const content = editor.getValue();
 
