@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Notepad++ Modular Web Studio</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <!-- CodeMirror Core & Themes -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/eclipse.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/dialog/dialog.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldgutter.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css" />
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <!-- Language Modes -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/markdown/markdown.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/sql/sql.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/shell/shell.min.js"></script>
+
+  <!-- Editing, Auto-Close Tag & Autocomplete Addons -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closetag.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/comment/comment.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/dialog/dialog.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/searchcursor.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/search.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/jump-to-line.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldgutter.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/brace-fold.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/indent-fold.min.js"></script>
+  <!-- Autocomplete Hints -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/anyword-hint.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/xml-hint.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/html-hint.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/css-hint.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/javascript-hint.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/sql-hint.min.js"></script>
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- Main Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-group">
+      <button id="authBtn" class="btn-primary" onclick="app.handleAuth()">Connect Drive</button>
+      <button onclick="app.openDriveBrowser()">Drive Files</button>
+      <button onclick="app.promptNewTab()">+ New</button>
+      <button class="btn-save" onclick="app.saveCurrentTab()">Save</button>
+      <button id="autoSaveBtn" onclick="app.toggleAutoSave()">Auto: OFF</button>
+      <input type="file" id="localFileInput" style="display:none" multiple onchange="app.loadLocalFiles(event)" />
+      <button onclick="document.getElementById('localFileInput').click()">Open</button>
+      <button onclick="app.downloadCurrentTab()">Export</button>
+    </div>
+
+    <div class="toolbar-group">
+      <button class="btn-run" onclick="app.runPythonCode()">▶ Run Py</button>
+      <button onclick="app.formatJSON()">JSON</button>
+      <button onclick="app.duplicateLineOrSelection()" title="Duplicate Line/Selection (Ctrl+D)">Dup (Ctrl+D)</button>
+      <select id="textToolsSelect" onchange="app.runTextTool(this.value); this.value='';" title="Text Utilities">
+        <option value="">Text Tools ▾</option>
+        <option value="upper">UPPERCASE</option>
+        <option value="lower">lowercase</option>
+        <option value="sort">Sort Lines (A-Z)</option>
+        <option value="dedupe">Remove Duplicate Lines</option>
+        <option value="trim">Trim Empty Spaces</option>
+      </select>
+      <button id="splitBtn" class="btn-active" onclick="app.toggleSplitView()">Split / Output</button>
+      <button onclick="app.triggerHint()" title="Code Suggestions (Ctrl+Space)">Suggest</button>
+      <button onclick="app.editor.execCommand('find')">Find</button>
+      <button onclick="app.changeFontSize(-1)">A-</button>
+      <button onclick="app.changeFontSize(1)">A+</button>
+      <select id="themeSelect" onchange="app.changeTheme(this.value)">
+        <option value="eclipse">Light</option>
+        <option value="dracula">Dark</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Contextual Markdown Formatting Toolbar -->
+  <div id="md-toolbar">
+    <span>Markdown:</span>
+    <button onclick="app.insertMd('# ', '')">H1</button>
+    <button onclick="app.insertMd('## ', '')">H2</button>
+    <button onclick="app.insertMd('**', '**')"><b>B</b></button>
+    <button onclick="app.insertMd('*', '*')"><i>I</i></button>
+    <button onclick="app.insertMd('`', '`')">Code</button>
+    <button onclick="app.insertMd('\n```python\n', '\n```\n')">Block</button>
+    <button onclick="app.insertMd('- [ ] ', '')">Task</button>
+    <button onclick="app.insertMd('\n| Col 1 | Col 2 |\n| :--- | :--- |\n| Val 1 | Val 2 |\n', '')">Table</button>
+    <button onclick="window.print()">Print PDF</button>
+  </div>
+
+  <!-- Multi-Tab Bar -->
+  <div class="tab-bar" id="tabBar"></div>
+
+  <!-- Split Workspace -->
+  <div id="workspace">
+    <div id="editor-pane"></div>
+    <div id="resizer" title="Drag to resize"></div>
+    <div id="preview-pane">
+      <div class="preview-header">
+        <span id="previewTitle">LIVE OUTPUT</span>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <span id="previewTypeBadge">Preview</span>
+          <button id="clearConsoleBtn" style="display:none; padding:2px 6px; font-size:11px;" onclick="app.clearPyConsole()">Clear</button>
+          <button class="mobile-only-btn" onclick="app.toggleSplitView(false)">Back to Code</button>
+        </div>
+      </div>
+      <div id="md-preview"></div>
+      <iframe id="html-preview" sandbox="allow-scripts"></iframe>
+      <div id="py-console"></div>
+    </div>
+  </div>
+
+  <!-- Mobile Coding Extra-Keys Bar -->
+  <div class="mobile-keys-bar" id="mobileKeysBar">
+    <button onclick="app.insertChar('    ')">Tab</button>
+    <button onclick="app.triggerHint()">💡Hint</button>
+    <button onclick="app.duplicateLineOrSelection()">Dup</button>
+    <button onclick="app.insertChar('<')">&lt;</button>
+    <button onclick="app.insertChar('>')">&gt;</button>
+    <button onclick="app.insertChar('/')">&sol;</button>
+    <button onclick="app.insertChar('{')">{</button>
+    <button onclick="app.insertChar('}')">}</button>
+    <button onclick="app.insertChar('(')">(</button>
+    <button onclick="app.insertChar(')')">)</button>
+    <button onclick="app.insertChar('[')">[</button>
+    <button onclick="app.insertChar(']')">]</button>
+    <button onclick="app.insertChar('&quot;')">"</button>
+    <button onclick="app.insertChar('\'')">'</button>
+    <button onclick="app.insertChar(':')">:</button>
+    <button onclick="app.insertChar(';')">;</button>
+    <button onclick="app.insertChar('=')">=</button>
+    <button onclick="app.insertChar('#')">#</button>
+    <button onclick="app.editor.execCommand('undo')">↶</button>
+    <button onclick="app.editor.execCommand('redo')">↷</button>
+  </div>
+
+  <!-- Bottom Status Bar -->
+  <div class="statusbar">
+    <div id="statusMsg">Ready</div>
+    <div class="status-items">
+      <span id="cursorPos">Ln: 1, Col: 1</span>
+      <span id="wordStats">Lines: 1</span>
+      <select id="langSelect" onchange="app.manualLanguageChange(this.value)" style="padding: 1px 4px; font-size: 11px;">
+        <option value="htmlmixed">HTML (.html)</option>
+        <option value="python">Python (.py)</option>
+        <option value="markdown">Markdown (.md)</option>
+        <option value="javascript">JS / JSON</option>
+        <option value="css">CSS</option>
+        <option value="sql">SQL</option>
+        <option value="shell">Bash / Shell</option>
+        <option value="text/plain">Plain Text</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Google Drive Explorer Modal -->
+  <div class="modal-backdrop" id="driveModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span>Google Drive Explorer</span>
+        <button onclick="app.closeDriveBrowser()">✕</button>
+      </div>
+      <div class="modal-controls">
+        <input type="text" id="driveSearchInput" placeholder="Search files..." onkeyup="if(event.key==='Enter') app.searchDriveFiles()" />
+        <button onclick="app.searchDriveFiles()">Search</button>
+        <button onclick="app.openDriveByIdFallback()">By ID</button>
+      </div>
+      <div class="breadcrumb" id="driveBreadcrumb"></div>
+      <div class="file-list" id="driveFileList">Loading...</div>
+      <div class="modal-footer">
+        <span style="font-size:11.5px; color:#555;">Select a file to open in tab</span>
+        <button class="btn-save" onclick="app.saveNewFileToCurrentDriveFolder()">Save Active Tab Here</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
