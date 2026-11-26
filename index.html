@@ -79,13 +79,16 @@
   <!-- Main Toolbar -->
   <div class="toolbar">
     <div class="toolbar-group">
+      <button id="explorerBtn" onclick="app.toggleSidebar()" title="Toggle Folder Explorer Sidebar (Ctrl+B)">📁 Explorer</button>
       <button id="authBtn" class="btn-primary" onclick="app.handleAuth()">Connect Drive</button>
       <button onclick="app.openDriveBrowser()">Drive Files</button>
       <button onclick="app.promptNewTab()">+ New</button>
       <button class="btn-save" onclick="app.saveCurrentTab()" title="Save (Ctrl+S)">Save</button>
       <button id="autoSaveBtn" onclick="app.toggleAutoSave()">Auto: OFF</button>
       <input type="file" id="localFileInput" style="display:none" multiple onchange="app.loadLocalFiles(event)" />
+      <input type="file" id="localFolderInput" style="display:none" webkitdirectory directory multiple onchange="app.loadLocalFolderFromInput(event)" />
       <button onclick="app.openLocalFile()" title="Open local file (supports Direct Save in Chrome/Edge)">Open</button>
+      <button onclick="app.openLocalFolder()" title="Open an entire local folder in Explorer">Open Folder</button>
       <button onclick="app.downloadCurrentTab()" title="Download file copy">Export</button>
       <button onclick="app.shareCurrentTab()" title="Copy shareable snippet URL">Share</button>
     </div>
@@ -162,6 +165,26 @@
 
   <!-- Split Workspace -->
   <div id="workspace">
+    <aside id="sidebar-pane">
+      <div class="sidebar-header">
+        <span id="sidebarTitle">EXPLORER</span>
+        <div class="sidebar-actions">
+          <button onclick="app.newFileInWorkspace()" title="New File in Opened Folder">+</button>
+          <button onclick="app.openAllInFolder()" title="Open All Text Files in Root Folder">All</button>
+          <button onclick="app.refreshWorkspaceFolder()" title="Refresh Folder">↻</button>
+          <button onclick="app.toggleSidebar(false)" title="Close Explorer (Ctrl+B)">✕</button>
+        </div>
+      </div>
+      <div id="sidebarSubHeader" class="sidebar-sub">No folder opened</div>
+      <div id="sidebarTree" class="sidebar-tree">
+        <div class="sidebar-empty">
+          <p>Open an entire Local folder or Google Drive folder to browse &amp; edit files.</p>
+          <button class="btn-primary" onclick="app.openLocalFolder()">📂 Open Local Folder</button>
+          <button onclick="app.openDriveBrowser()">☁️ Open Drive Folder</button>
+        </div>
+      </div>
+    </aside>
+    <div id="sidebar-resizer" title="Drag to resize explorer"></div>
     <div id="editor-pane"></div>
     <div id="resizer" title="Drag to resize"></div>
     <div id="preview-pane">
@@ -257,8 +280,11 @@
       <div class="breadcrumb" id="driveBreadcrumb"></div>
       <div class="file-list" id="driveFileList">Loading...</div>
       <div class="modal-footer">
-        <span style="font-size:11.5px; color:var(--text-muted);">Select a file to open in tab</span>
-        <button class="btn-save" onclick="app.saveNewFileToCurrentDriveFolder()">Save Active Tab Here</button>
+        <span style="font-size:11.5px; color:var(--text-muted);">Select a file or open this folder</span>
+        <div style="display:flex; gap:6px;">
+          <button class="btn-primary" onclick="app.openCurrentDriveFolderInSidebar()">📂 Open This Folder</button>
+          <button class="btn-save" onclick="app.saveNewFileToCurrentDriveFolder()">Save Active Tab Here</button>
+        </div>
       </div>
     </div>
   </div>

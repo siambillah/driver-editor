@@ -273,6 +273,18 @@ export async function deleteDriveFile(fileId, name, e) {
   }
 }
 
+export async function listDriveFolderItems(folderId) {
+  const q = `'${folderId}' in parents and trashed = false`;
+  const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&orderBy=folder,name&fields=files(id,name,mimeType,size,modifiedTime)&pageSize=100`;
+  const res = await driveFetch(url);
+  const data = await res.json();
+  return data.files || [];
+}
+
+export function getCurrentDriveFolder() {
+  return folderStack[folderStack.length - 1] || { id: 'root', name: 'My Drive' };
+}
+
 export async function loadDriveFolder(folderId, searchQuery = null) {
   const listEl = document.getElementById('driveFileList');
   listEl.innerHTML = 'Loading...';
@@ -317,6 +329,19 @@ export async function loadDriveFolder(folderId, searchQuery = null) {
       const sizeStr = isFolder ? '' : formatSize(f.size);
       const dateStr = formatDate(f.modifiedTime);
       meta.innerHTML = `<span>${sizeStr}</span><span>${dateStr}</span>`;
+
+      if (isFolder) {
+        const openFolderBtn = document.createElement('button');
+        openFolderBtn.textContent = 'Open';
+        openFolderBtn.title = 'Open entire folder in Explorer sidebar';
+        openFolderBtn.style.padding = '2px 7px';
+        openFolderBtn.onclick = (e) => {
+          e.stopPropagation();
+          closeDriveBrowser();
+          callbacks.onOpenDriveFolder?.(f.id, f.name);
+        };
+        meta.appendChild(openFolderBtn);
+      }
 
       const delBtn = document.createElement('button');
       delBtn.textContent = '🗑️';

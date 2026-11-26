@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sb-editor-text-v4';
+const CACHE_NAME = 'sb-editor-text-v5';
 const APP_SHELL = [
   './',
   './index.html',
@@ -9,6 +9,7 @@ const APP_SHELL = [
   './js/tools.js',
   './js/suggestions.js',
   './js/modals.js',
+  './js/explorer.js',
   './manifest.json',
   './assets/icon.svg',
   './assets/favicon-32x32.png',

@@ -2,6 +2,7 @@ import { registerCustomHints, setupAutoComplete } from './suggestions.js';
 import * as drive from './drive.js';
 import * as tools from './tools.js';
 import * as modals from './modals.js';
+import * as explorer from './explorer.js';
 
 const STORAGE_KEY = 'npp_modular_tabs_v1';
 const SETTINGS_KEY = 'npp_modular_settings_v1';
@@ -73,6 +74,8 @@ const editor = CodeMirror(document.getElementById('editor-pane'), {
     'F1': () => modals.openCommandPalette(),
     'Ctrl-Shift-F': () => modals.openSearchAllModal(),
     'Cmd-Shift-F': () => modals.openSearchAllModal(),
+    'Ctrl-B': () => explorer.toggleSidebar(),
+    'Cmd-B': () => explorer.toggleSidebar(),
     'Ctrl-Enter': () => tools.runActiveCode(),
     'Cmd-Enter': () => tools.runActiveCode(),
     'Tab': (cm) => {
@@ -92,6 +95,9 @@ window.addEventListener('keydown', (e) => {
   } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
     e.preventDefault();
     modals.openSearchAllModal();
+  } else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'b') {
+    e.preventDefault();
+    explorer.toggleSidebar();
   } else if (e.key === 'Escape') {
     hideTabContextMenu();
     ['driveModal', 'paletteModal', 'diffModal', 'searchAllModal', 'snippetsModal'].forEach(id => {
@@ -263,13 +269,13 @@ function updateRunButtonLabel(tab) {
 }
 
 /* ==================== TAB MANAGEMENT ==================== */
-function createTab({ title = 'index.html', content = '', fileId = null, folderId = null, fileHandle = null, isDirty = false, mode = null, mimeType = null } = {}) {
+function createTab({ title = 'index.html', content = '', fileId = null, folderId = null, fileHandle = null, workspacePath = null, isDirty = false, mode = null, mimeType = null } = {}) {
   const meta = detectMeta(title);
   const finalMode = mode || meta.mode;
   const id = 'tab_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
   const doc = CodeMirror.Doc(content, finalMode);
 
-  const tab = { id, title, doc, mode: finalMode, mimeType: mimeType || meta.mimeType, fileId, folderId, fileHandle, isDirty };
+  const tab = { id, title, doc, mode: finalMode, mimeType: mimeType || meta.mimeType, fileId, folderId, fileHandle, workspacePath, isDirty };
 
   doc.on('change', () => {
     if (!tab.isDirty) {
@@ -596,17 +602,27 @@ function setupDragAndDrop() {
     dragDepth = Math.max(0, dragDepth - 1);
     if (dragDepth === 0) overlay.classList.remove('show');
   });
-  window.addEventListener('drop', (e) => {
-    if (!e.dataTransfer?.files?.length) return;
+  window.addEventListener('drop', async (e) => {
+    const items = Array.from(e.dataTransfer?.items || []);
+    const files = Array.from(e.dataTransfer?.files || []);
+    if (!items.length && !files.length) return;
     e.preventDefault();
     dragDepth = 0;
     overlay.classList.remove('show');
-    Array.from(e.dataTransfer.files).forEach(f => {
+
+    // Check if an entire folder was dropped
+    for (const item of items) {
+      if (await explorer.handleDroppedEntry(item)) {
+        return;
+      }
+    }
+
+    files.forEach(f => {
       const r = new FileReader();
       r.onload = (ev) => createTab({ title: f.name, content: ev.target.result, isDirty: false });
       r.readAsText(f);
     });
-    setStatus(`Opened ${e.dataTransfer.files.length} dropped file(s) ✓`);
+    setStatus(`Opened ${files.length} dropped file(s) ✓`);
   });
 }
 
@@ -679,6 +695,9 @@ function getCommands() {
   return [
     { category: 'File', label: 'New Tab', shortcut: '+ New', run: () => window.app.promptNewTab() },
     { category: 'File', label: 'Open Local File (Direct Save)', shortcut: 'Open', run: () => openLocalFile() },
+    { category: 'File', label: 'Open Local Folder in Explorer', run: () => explorer.openLocalFolder() },
+    { category: 'File', label: 'Toggle Folder Explorer Sidebar', shortcut: 'Ctrl+B', run: () => explorer.toggleSidebar() },
+    { category: 'File', label: 'Open All Text Files in Opened Folder', run: () => explorer.openAllInFolder() },
     { category: 'File', label: 'Save Active Tab', shortcut: 'Ctrl+S', run: () => saveCurrentTab() },
     { category: 'File', label: 'Export / Download Active Tab', run: () => downloadCurrentTab() },
     { category: 'File', label: 'Share Snippet via Link', run: () => modals.shareCurrentTab() },
@@ -732,6 +751,14 @@ modals.initModals({
   setStatus,
   getCommands,
   openTabAtLine
+});
+explorer.initExplorer({
+  editor,
+  getTabs: () => tabs,
+  createTab,
+  switchTab,
+  setStatus,
+  promptNewTab: () => window.app.promptNewTab()
 });
 setupDragAndDrop();
 setupMobileSwipe();
@@ -791,7 +818,8 @@ function startApp() {
       createTab,
       switchTab,
       setStatus,
-      onTabSaved: () => { renderTabBar(); saveSession(); }
+      onTabSaved: () => { renderTabBar(); saveSession(); },
+      onOpenDriveFolder: (id, name) => explorer.openDriveFolderInSidebar(id, name)
     }, driveState);
   };
 
@@ -822,6 +850,17 @@ window.app = {
   saveNewFileToCurrentDriveFolder: drive.saveNewFileToCurrentDriveFolder,
   saveCurrentTab,
   openLocalFile,
+  openLocalFolder: explorer.openLocalFolder,
+  loadLocalFolderFromInput: explorer.loadLocalFolderFromInput,
+  toggleSidebar: explorer.toggleSidebar,
+  refreshWorkspaceFolder: explorer.refreshWorkspaceFolder,
+  newFileInWorkspace: explorer.newFileInWorkspace,
+  openAllInFolder: explorer.openAllInFolder,
+  openCurrentDriveFolderInSidebar: () => {
+    const folder = drive.getCurrentDriveFolder();
+    drive.closeDriveBrowser();
+    explorer.openDriveFolderInSidebar(folder.id, folder.name);
+  },
   downloadCurrentTab,
   shareCurrentTab: modals.shareCurrentTab,
   duplicateLineOrSelection,

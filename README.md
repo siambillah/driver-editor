@@ -10,9 +10,9 @@ A lightweight, modular, zero-build web code and text editor built with **CodeMir
 
 ### Google Drive & Local File Integration
 * **Native Drive UI Integration:** Open single or multiple files directly from Google Drive via **Right-Click > Open with**, and create new files directly in the target folder via **+ New** (`action: "create"`).
-* **Upgraded In-App Drive Explorer:** Browse folders, search files, view file size and last modified timestamps, **create new folders**, **move files/folders to Trash**, **reload Drive tabs**, and save new files into any Drive folder.
+* **Upgraded In-App Drive Explorer & Full Folder Workspace:** Browse folders, search files, view file size and last modified timestamps, **create new folders**, **move files/folders to Trash**, **reload Drive tabs**, save new files into any Drive folder, or **open an entire Google Drive folder** in the left **Explorer Sidebar** (`Ctrl+B`).
 * **Auto-Save & Session Expiry Handling:** Save with `Ctrl+S` or toggle **Auto-Save** (4-second debounce) with automatic `401` expired-token detection and reconnect prompts.
-* **File System Access API (Direct Disk Save):** Open local files in Chrome/Edge with direct in-place `Ctrl+S` saving back to disk (with automatic fallback for other browsers), plus **Drag & Drop** file opening.
+* **Local Folder Explorer & File System Access API:** Open an entire **Local Folder** (`Open Folder` or Drag & Drop folder) into the collapsible Explorer Sidebar—with lazy subfolder expansion, **Open All**, creating new files inside the folder, and direct in-place `Ctrl+S` saving back to disk in Chrome/Edge (with `webkitdirectory` fallback for other browsers).
 * **Shareable Snippet Links:** Share code snippets directly via `#share=` URL hash with zero backend.
 
 ### Editor & Notepad++ Power Tools
@@ -61,7 +61,8 @@ driver-editor/
     ├── suggestions.js  # Language keyword dictionaries, built-in & localStorage custom snippets
     ├── drive.js        # Google OAuth 2.0, 401 refresh handling, folder/file CRUD & Drive sync
     ├── tools.js        # Multi-file HTML preview, Markdown (hljs/Mermaid/KaTeX), Python/JS runners & utilities
-    └── modals.js       # Command Palette, Diff Viewer, Search All Tabs, Snippets Manager & Share Links
+    ├── modals.js       # Command Palette, Diff Viewer, Search All Tabs, Snippets Manager & Share Links
+    └── explorer.js     # Collapsible Folder Explorer sidebar for Local & Google Drive folders
 ```
 
 ---
@@ -115,6 +116,8 @@ Then open `http://localhost:8000` in your browser.
 | Shortcut | Action |
 | :--- | :--- |
 | `Ctrl + S` / `Cmd + S` | Save active file (Google Drive, Direct Disk handle, or Download) |
+| `Ctrl + B` / `Cmd + B` | Toggle Folder Explorer Sidebar (Local / Drive folder tree) |
+| `Ctrl + Enter` | Run active file (Python, JavaScript, or live HTML/Markdown preview) |
 | `Ctrl + Shift + P` / `F1` | Open Command Palette |
 | `Ctrl + Shift + F` | Find & Replace across all open tabs |
 | `Shift + Alt + F` | Auto-format HTML, CSS, JavaScript, or JSON |
