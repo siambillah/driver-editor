@@ -33,6 +33,8 @@ A lightweight, modular, zero-build web code and text editor built with **CodeMir
 * **Upgraded Markdown Preview:** Real-time rendering with **Syntax Highlighting** (`highlight.js`) + per-block **Copy** buttons, on-demand **Mermaid** diagrams, **KaTeX** math (`$...$` / `$$...$$`), **Scroll Sync**, **Export Standalone HTML**, and **Print / Export to PDF**.
 * **Client-Side Python (`Pyodide`) & JavaScript Console (`▶ Run`):**
   * Smart `▶ Run` button executes Python via Pyodide (with `input()` prompt support, auto package imports, HTML-escaped console output, timing, and `+ Pkg` `micropip` installer) or JavaScript in an isolated sandboxed console (`console.log/warn/error`).
+* **Integrated Interactive Terminal (`⌨️ Terminal` / `Ctrl+\``):**
+  * Resizable bottom terminal drawer with Virtual Shell commands (`ls`, `cat`, `head`, `tail`, `grep`, `wc`, `touch`, `open`, `save`, `rm`, `mv`, `cp`, `echo > file`, `pip install`, `python`, `node`/`js`), interactive **Python REPL** (`Pyodide`), interactive **JS REPL**, command history (`↑`/`↓`), `Tab` autocomplete, and optional **WebSocket Shell Bridge** (`connect ws://localhost:PORT`).
 
 ### Installable PWA & Mobile Experience
 * **Offline PWA Support:** Installable web app (`manifest.json` + `sw.js`) that caches the app shell and CDN assets for offline coding.
@@ -62,7 +64,8 @@ driver-editor/
     ├── drive.js        # Google OAuth 2.0, 401 refresh handling, folder/file CRUD & Drive sync
     ├── tools.js        # Multi-file HTML preview, Markdown (hljs/Mermaid/KaTeX), Python/JS runners & utilities
     ├── modals.js       # Command Palette, Diff Viewer, Search All Tabs, Snippets Manager & Share Links
-    └── explorer.js     # Collapsible Folder Explorer sidebar for Local & Google Drive folders
+    ├── explorer.js     # Collapsible Folder Explorer sidebar for Local & Google Drive folders
+    └── terminal.js     # Resizable bottom Terminal (Virtual Shell, Python/JS REPL & WS bridge)
 ```
 
 ---
@@ -117,6 +120,7 @@ Then open `http://localhost:8000` in your browser.
 | :--- | :--- |
 | `Ctrl + S` / `Cmd + S` | Save active file (Google Drive, Direct Disk handle, or Download) |
 | `Ctrl + B` / `Cmd + B` | Toggle Folder Explorer Sidebar (Local / Drive folder tree) |
+| ``Ctrl + ` `` / ``Cmd + ` `` | Toggle Integrated Terminal Drawer |
 | `Ctrl + Enter` | Run active file (Python, JavaScript, or live HTML/Markdown preview) |
 | `Ctrl + Shift + P` / `F1` | Open Command Palette |
 | `Ctrl + Shift + F` | Find & Replace across all open tabs |

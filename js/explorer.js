@@ -34,6 +34,10 @@ export function isExplorerOpen() {
   return isSidebarOpen;
 }
 
+export function getWorkspaceSource() {
+  return workspaceSource;
+}
+
 export function toggleSidebar(forceState = null) {
   isSidebarOpen = forceState !== null ? forceState : !isSidebarOpen;
   const sidebar = document.getElementById('sidebar-pane');

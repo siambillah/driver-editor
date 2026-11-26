@@ -417,10 +417,10 @@ export function runActiveCode() {
   }
 }
 
-async function ensurePyodide(pyConsole) {
+async function ensurePyodide(onInfo = null) {
   if (pyodideInstance) return pyodideInstance;
   if (!pyodideLoadingPromise) {
-    pyConsole.innerHTML = '<span class="py-info">Loading Pyodide Python runtime (first time only)...</span>\n';
+    onInfo?.('Loading Pyodide Python runtime (first time only)...');
     pyodideLoadingPromise = (async () => {
       await loadScriptOnce('https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js');
       const inst = await loadPyodide();
@@ -437,6 +437,10 @@ async function ensurePyodide(pyConsole) {
     });
   }
   return pyodideLoadingPromise;
+}
+
+export async function getPyodideInstance(onInfo = null) {
+  return ensurePyodide(onInfo);
 }
 
 export async function runPythonCode({ isLive = false } = {}) {
@@ -456,7 +460,9 @@ export async function runPythonCode({ isLive = false } = {}) {
   isPyRunning = true;
   try {
     try {
-      await ensurePyodide(pyConsole);
+      await ensurePyodide((msg) => {
+        pyConsole.innerHTML = `<span class="py-info">${escapeHtml(msg)}</span>\n`;
+      });
     } catch (e) {
       pyConsole.innerHTML = `<span class="py-err">Failed to load Pyodide: ${escapeHtml(e.message)}</span>\n`;
       return;
@@ -509,7 +515,9 @@ export async function installPyPackage() {
   toggleSplitView(true);
   const pyConsole = document.getElementById('py-console');
   try {
-    await ensurePyodide(pyConsole);
+    await ensurePyodide((msg) => {
+      pyConsole.innerHTML += `<span class="py-info">${escapeHtml(msg)}</span>\n`;
+    });
     pyConsole.innerHTML += `<span class="py-info">Installing "${escapeHtml(pkg.trim())}" via micropip...</span>\n`;
     await pyodideInstance.loadPackage('micropip');
     const micropip = pyodideInstance.pyimport('micropip');

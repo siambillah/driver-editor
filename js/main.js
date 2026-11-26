@@ -3,6 +3,7 @@ import * as drive from './drive.js';
 import * as tools from './tools.js';
 import * as modals from './modals.js';
 import * as explorer from './explorer.js';
+import * as terminal from './terminal.js';
 
 const STORAGE_KEY = 'npp_modular_tabs_v1';
 const SETTINGS_KEY = 'npp_modular_settings_v1';
@@ -76,6 +77,8 @@ const editor = CodeMirror(document.getElementById('editor-pane'), {
     'Cmd-Shift-F': () => modals.openSearchAllModal(),
     'Ctrl-B': () => explorer.toggleSidebar(),
     'Cmd-B': () => explorer.toggleSidebar(),
+    'Ctrl-`': () => terminal.toggleTerminal(),
+    'Cmd-`': () => terminal.toggleTerminal(),
     'Ctrl-Enter': () => tools.runActiveCode(),
     'Cmd-Enter': () => tools.runActiveCode(),
     'Tab': (cm) => {
@@ -98,6 +101,9 @@ window.addEventListener('keydown', (e) => {
   } else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'b') {
     e.preventDefault();
     explorer.toggleSidebar();
+  } else if ((e.ctrlKey || e.metaKey) && (e.key === '`' || e.code === 'Backquote')) {
+    e.preventDefault();
+    terminal.toggleTerminal();
   } else if (e.key === 'Escape') {
     hideTabContextMenu();
     ['driveModal', 'paletteModal', 'diffModal', 'searchAllModal', 'snippetsModal'].forEach(id => {
@@ -360,10 +366,10 @@ function duplicateTab(id) {
   createTab({ title: newName, content: tab.doc.getValue(), mode: tab.mode, isDirty: true });
 }
 
-function renameTab(id) {
+function renameTab(id, directName = null) {
   const tab = tabs.find(t => t.id === id);
   if (!tab) return;
-  const newName = prompt('নতুন ফাইলের নাম দিন:', tab.title);
+  const newName = directName !== null ? directName : prompt('নতুন ফাইলের নাম দিন:', tab.title);
   if (!newName || !newName.trim() || newName.trim() === tab.title) return;
 
   tab.title = newName.trim();
@@ -707,6 +713,9 @@ function getCommands() {
     { category: 'Run', label: 'Run Active File (Smart)', shortcut: 'Ctrl+Enter', run: () => tools.runActiveCode() },
     { category: 'Run', label: 'Toggle Live Python / JS Execution', run: () => tools.toggleLiveRun() },
     { category: 'Run', label: 'Run Python (Pyodide)', run: () => tools.runPythonCode() },
+    { category: 'Run', label: 'Toggle Integrated Terminal', shortcut: 'Ctrl+`', run: () => terminal.toggleTerminal() },
+    { category: 'Run', label: 'Open Python Interactive REPL in Terminal', run: () => { terminal.toggleTerminal(true); terminal.switchMode('python'); } },
+    { category: 'Run', label: 'Open JavaScript REPL in Terminal', run: () => { terminal.toggleTerminal(true); terminal.switchMode('javascript'); } },
     { category: 'Run', label: 'Install Python Package (micropip)', run: () => tools.installPyPackage() },
     { category: 'Run', label: 'Run JavaScript Console', run: () => tools.runJavaScriptCode() },
     { category: 'Edit', label: 'Format Code (HTML / CSS / JS / JSON)', shortcut: 'Shift+Alt+F', run: () => tools.formatActiveCode() },
@@ -759,6 +768,16 @@ explorer.initExplorer({
   switchTab,
   setStatus,
   promptNewTab: () => window.app.promptNewTab()
+});
+terminal.initTerminal({
+  editor,
+  getTabs: () => tabs,
+  getActiveTab,
+  createTab,
+  switchTab,
+  closeTab,
+  saveCurrentTab,
+  renameTabDirect: (id, name) => renameTab(id, name)
 });
 setupDragAndDrop();
 setupMobileSwipe();
@@ -866,6 +885,9 @@ window.app = {
   duplicateLineOrSelection,
   nextBookmark: () => nextBookmark(1),
   toggleSplitView: tools.toggleSplitView,
+  toggleTerminal: terminal.toggleTerminal,
+  clearTerminal: terminal.clearTerminal,
+  setTerminalMode: terminal.switchMode,
   toggleLiveRun: tools.toggleLiveRun,
   toggleScrollSync: tools.toggleScrollSync,
   exportMarkdownHtml: tools.exportMarkdownHtml,

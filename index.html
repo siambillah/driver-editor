@@ -128,6 +128,7 @@
       <button onclick="app.openSearchAllModal()" title="Find & Replace across all open tabs (Ctrl+Shift+F)">Search All</button>
       <button onclick="app.openSnippetsModal()" title="Manage custom code snippets">Snippets</button>
       <button id="splitBtn" class="btn-active" onclick="app.toggleSplitView()">Split / Output</button>
+      <button id="terminalBtn" onclick="app.toggleTerminal()" title="Toggle Integrated Terminal (Ctrl+`)">⌨️ Terminal</button>
       <button id="wrapBtn" class="btn-active" onclick="app.toggleWordWrap()" title="Toggle Word Wrap">Wrap</button>
       <button onclick="app.openCommandPalette()" title="Command Palette (Ctrl+Shift+P)">⌘</button>
       <button onclick="app.changeFontSize(-1)" title="Decrease Font Size">A-</button>
@@ -204,11 +205,35 @@
     </div>
   </div>
 
+  <!-- Integrated Bottom Terminal Drawer -->
+  <div id="terminal-resizer" title="Drag to resize terminal"></div>
+  <section id="terminal-pane">
+    <div class="terminal-header">
+      <div class="terminal-title-group">
+        <span>TERMINAL</span>
+        <span id="terminalModeBadge" class="term-badge">Shell</span>
+      </div>
+      <div class="terminal-actions">
+        <button onclick="app.setTerminalMode('shell')" title="Shell Mode">Shell</button>
+        <button onclick="app.setTerminalMode('python')" title="Python Interactive REPL (Pyodide)">Py REPL</button>
+        <button onclick="app.setTerminalMode('javascript')" title="JavaScript Interactive REPL">JS REPL</button>
+        <button onclick="app.clearTerminal()" title="Clear Terminal (Ctrl+L)">Clear</button>
+        <button onclick="app.toggleTerminal(false)" title="Close Terminal (Ctrl+`)">✕</button>
+      </div>
+    </div>
+    <div id="terminalOutput"></div>
+    <div class="terminal-input-row">
+      <span id="terminalPrompt" class="term-prompt">sb:~/workspace$</span>
+      <input type="text" id="terminalInput" placeholder="Type command (help, ls, cat app.py, python, pip install, js)..." autocomplete="off" spellcheck="false" />
+    </div>
+  </section>
+
   <!-- Mobile Coding Extra-Keys Bar -->
   <div class="mobile-keys-bar" id="mobileKeysBar">
     <button onclick="app.insertChar('    ')">Tab</button>
     <button onclick="app.triggerHint()">💡Hint</button>
     <button onclick="app.duplicateLineOrSelection()">Dup</button>
+    <button onclick="app.toggleTerminal()">⌨️</button>
     <button onclick="app.openCommandPalette()">⌘</button>
     <button onclick="app.insertChar('<')">&lt;</button>
     <button onclick="app.insertChar('>')">&gt;</button>
