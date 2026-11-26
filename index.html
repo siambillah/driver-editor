@@ -3,14 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Notepad++ Modular Web Studio</title>
+  <meta name="theme-color" content="#0078d7" />
+  <title>SB Editor Text</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
+  <link rel="icon" href="assets/favicon-32x32.png" type="image/png" sizes="32x32" />
+  <link rel="shortcut icon" href="favicon.ico" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" sizes="180x180" />
+
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- Code Highlighting for Markdown & Formatter -->
+  <link rel="stylesheet" id="hljs-theme" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify-css.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify-html.min.js"></script>
 
   <!-- CodeMirror Core & Themes -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/eclipse.min.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/monokai.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/dialog/dialog.min.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldgutter.min.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css" />
@@ -25,21 +40,29 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/markdown/markdown.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/sql/sql.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/shell/shell.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/php/php.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/yaml/yaml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/go/go.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/rust/rust.min.js"></script>
 
   <!-- Editing, Auto-Close Tag & Autocomplete Addons -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closetag.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchtags.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/comment/comment.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/dialog/dialog.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/searchcursor.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/search.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/jump-to-line.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/match-highlighter.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldgutter.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/brace-fold.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/indent-fold.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/xml-fold.min.js"></script>
   <!-- Autocomplete Hints -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/anyword-hint.min.js"></script>
@@ -59,33 +82,59 @@
       <button id="authBtn" class="btn-primary" onclick="app.handleAuth()">Connect Drive</button>
       <button onclick="app.openDriveBrowser()">Drive Files</button>
       <button onclick="app.promptNewTab()">+ New</button>
-      <button class="btn-save" onclick="app.saveCurrentTab()">Save</button>
+      <button class="btn-save" onclick="app.saveCurrentTab()" title="Save (Ctrl+S)">Save</button>
       <button id="autoSaveBtn" onclick="app.toggleAutoSave()">Auto: OFF</button>
       <input type="file" id="localFileInput" style="display:none" multiple onchange="app.loadLocalFiles(event)" />
-      <button onclick="document.getElementById('localFileInput').click()">Open</button>
-      <button onclick="app.downloadCurrentTab()">Export</button>
+      <button onclick="app.openLocalFile()" title="Open local file (supports Direct Save in Chrome/Edge)">Open</button>
+      <button onclick="app.downloadCurrentTab()" title="Download file copy">Export</button>
+      <button onclick="app.shareCurrentTab()" title="Copy shareable snippet URL">Share</button>
     </div>
 
     <div class="toolbar-group">
-      <button class="btn-run" onclick="app.runPythonCode()">▶ Run Py</button>
-      <button onclick="app.formatJSON()">JSON</button>
-      <button onclick="app.duplicateLineOrSelection()" title="Duplicate Line/Selection (Ctrl+D)">Dup (Ctrl+D)</button>
-      <select id="textToolsSelect" onchange="app.runTextTool(this.value); this.value='';" title="Text Utilities">
-        <option value="">Text Tools ▾</option>
-        <option value="upper">UPPERCASE</option>
-        <option value="lower">lowercase</option>
-        <option value="sort">Sort Lines (A-Z)</option>
-        <option value="dedupe">Remove Duplicate Lines</option>
-        <option value="trim">Trim Empty Spaces</option>
+      <button id="runBtn" class="btn-run" onclick="app.runActiveCode()" title="Run Python / JavaScript / Preview">▶ Run</button>
+      <button onclick="app.formatActiveCode()" title="Format HTML / CSS / JS / JSON (Shift+Alt+F)">Format</button>
+      <select id="textToolsSelect" onchange="app.runTextTool(this.value); this.value='';" title="Text & Developer Utilities">
+        <option value="">Tools ▾</option>
+        <optgroup label="Text Utilities">
+          <option value="upper">UPPERCASE</option>
+          <option value="lower">lowercase</option>
+          <option value="title">Title Case</option>
+          <option value="sort">Sort Lines (A-Z)</option>
+          <option value="sortDesc">Sort Lines (Z-A)</option>
+          <option value="reverse">Reverse Lines</option>
+          <option value="dedupe">Remove Duplicate Lines</option>
+          <option value="removeEmpty">Remove Empty Lines</option>
+          <option value="trim">Trim Empty Spaces</option>
+          <option value="lineNumbers">Add Line Numbers</option>
+          <option value="joinLines">Join Lines</option>
+        </optgroup>
+        <optgroup label="Dev / Encoding">
+          <option value="b64encode">Base64 Encode</option>
+          <option value="b64decode">Base64 Decode</option>
+          <option value="urlEncode">URL Encode</option>
+          <option value="urlDecode">URL Decode</option>
+          <option value="jwtDecode">Decode JWT Token</option>
+          <option value="minifyJson">Minify JSON</option>
+          <option value="jsonToCsv">JSON → CSV</option>
+          <option value="csvToJson">CSV → JSON</option>
+          <option value="htmlEscape">Escape HTML</option>
+          <option value="htmlUnescape">Unescape HTML</option>
+        </optgroup>
       </select>
+      <button onclick="app.openDiffModal()" title="Compare two open tabs (Diff)">Compare</button>
+      <button onclick="app.openSearchAllModal()" title="Find & Replace across all open tabs (Ctrl+Shift+F)">Search All</button>
+      <button onclick="app.openSnippetsModal()" title="Manage custom code snippets">Snippets</button>
       <button id="splitBtn" class="btn-active" onclick="app.toggleSplitView()">Split / Output</button>
-      <button onclick="app.triggerHint()" title="Code Suggestions (Ctrl+Space)">Suggest</button>
-      <button onclick="app.editor.execCommand('find')">Find</button>
-      <button onclick="app.changeFontSize(-1)">A-</button>
-      <button onclick="app.changeFontSize(1)">A+</button>
-      <select id="themeSelect" onchange="app.changeTheme(this.value)">
+      <button id="wrapBtn" class="btn-active" onclick="app.toggleWordWrap()" title="Toggle Word Wrap">Wrap</button>
+      <button onclick="app.openCommandPalette()" title="Command Palette (Ctrl+Shift+P)">⌘</button>
+      <button onclick="app.changeFontSize(-1)" title="Decrease Font Size">A-</button>
+      <button onclick="app.changeFontSize(1)" title="Increase Font Size">A+</button>
+      <select id="themeSelect" onchange="app.changeTheme(this.value)" title="Editor & UI Theme">
         <option value="eclipse">Light</option>
-        <option value="dracula">Dark</option>
+        <option value="default">Classic</option>
+        <option value="dracula">Dracula</option>
+        <option value="monokai">Monokai</option>
+        <option value="material-darker">Material Dark</option>
       </select>
     </div>
   </div>
@@ -101,6 +150,10 @@
     <button onclick="app.insertMd('\n```python\n', '\n```\n')">Block</button>
     <button onclick="app.insertMd('- [ ] ', '')">Task</button>
     <button onclick="app.insertMd('\n| Col 1 | Col 2 |\n| :--- | :--- |\n| Val 1 | Val 2 |\n', '')">Table</button>
+    <button onclick="app.insertMd('\n$$\n', '\n$$\n')" title="KaTeX Math Block">Math</button>
+    <button onclick="app.insertMd('\n```mermaid\ngraph TD;\n  A[Start] --> B[End];\n```\n', '')" title="Mermaid Diagram">Mermaid</button>
+    <button id="scrollSyncBtn" class="btn-active" onclick="app.toggleScrollSync()" title="Sync editor & preview scrolling">Sync: ON</button>
+    <button onclick="app.exportMarkdownHtml()">Export HTML</button>
     <button onclick="window.print()">Print PDF</button>
   </div>
 
@@ -116,12 +169,13 @@
         <span id="previewTitle">LIVE OUTPUT</span>
         <div style="display:flex; gap:6px; align-items:center;">
           <span id="previewTypeBadge">Preview</span>
+          <button id="installPyPkgBtn" style="display:none; padding:2px 6px; font-size:11px;" onclick="app.installPyPackage()" title="Install Python package via micropip">+ Pkg</button>
           <button id="clearConsoleBtn" style="display:none; padding:2px 6px; font-size:11px;" onclick="app.clearPyConsole()">Clear</button>
           <button class="mobile-only-btn" onclick="app.toggleSplitView(false)">Back to Code</button>
         </div>
       </div>
       <div id="md-preview"></div>
-      <iframe id="html-preview" sandbox="allow-scripts"></iframe>
+      <iframe id="html-preview" sandbox="allow-scripts allow-modals"></iframe>
       <div id="py-console"></div>
     </div>
   </div>
@@ -131,6 +185,7 @@
     <button onclick="app.insertChar('    ')">Tab</button>
     <button onclick="app.triggerHint()">💡Hint</button>
     <button onclick="app.duplicateLineOrSelection()">Dup</button>
+    <button onclick="app.openCommandPalette()">⌘</button>
     <button onclick="app.insertChar('<')">&lt;</button>
     <button onclick="app.insertChar('>')">&gt;</button>
     <button onclick="app.insertChar('/')">&sol;</button>
@@ -154,20 +209,36 @@
   <div class="statusbar">
     <div id="statusMsg">Ready</div>
     <div class="status-items">
+      <span id="bookmarkStat" style="cursor:pointer" onclick="app.nextBookmark()" title="Click or press F2 to jump to next bookmark"></span>
       <span id="cursorPos">Ln: 1, Col: 1</span>
       <span id="wordStats">Lines: 1</span>
       <select id="langSelect" onchange="app.manualLanguageChange(this.value)" style="padding: 1px 4px; font-size: 11px;">
         <option value="htmlmixed">HTML (.html)</option>
         <option value="python">Python (.py)</option>
         <option value="markdown">Markdown (.md)</option>
-        <option value="javascript">JS / JSON</option>
+        <option value="javascript">JS / JSON / TS</option>
         <option value="css">CSS</option>
         <option value="sql">SQL</option>
         <option value="shell">Bash / Shell</option>
+        <option value="text/x-c++src">C / C++</option>
+        <option value="text/x-java">Java</option>
+        <option value="application/x-httpd-php">PHP</option>
+        <option value="text/x-yaml">YAML</option>
+        <option value="application/xml">XML / SVG</option>
+        <option value="text/x-go">Go</option>
+        <option value="text/x-rustsrc">Rust</option>
         <option value="text/plain">Plain Text</option>
       </select>
     </div>
   </div>
+
+  <!-- Drag & Drop Overlay -->
+  <div id="dropOverlay">
+    <div class="drop-box">📂 Drop files here to open in new tabs</div>
+  </div>
+
+  <!-- Tab Context / Action Menu (Desktop right-click & Mobile ⋮ button) -->
+  <div id="tabContextMenu" class="context-menu"></div>
 
   <!-- Google Drive Explorer Modal -->
   <div class="modal-backdrop" id="driveModal">
@@ -179,14 +250,89 @@
       <div class="modal-controls">
         <input type="text" id="driveSearchInput" placeholder="Search files..." onkeyup="if(event.key==='Enter') app.searchDriveFiles()" />
         <button onclick="app.searchDriveFiles()">Search</button>
+        <button onclick="app.createDriveFolder()" title="Create new folder in current location">+ Folder</button>
         <button onclick="app.openDriveByIdFallback()">By ID</button>
       </div>
       <div class="breadcrumb" id="driveBreadcrumb"></div>
       <div class="file-list" id="driveFileList">Loading...</div>
       <div class="modal-footer">
-        <span style="font-size:11.5px; color:#555;">Select a file to open in tab</span>
+        <span style="font-size:11.5px; color:var(--text-muted);">Select a file to open in tab</span>
         <button class="btn-save" onclick="app.saveNewFileToCurrentDriveFolder()">Save Active Tab Here</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Command Palette Modal -->
+  <div class="modal-backdrop" id="paletteModal">
+    <div class="modal-box palette-box">
+      <div class="modal-controls">
+        <input type="text" id="paletteInput" placeholder="Type a command, theme, tool, or tab name..." autocomplete="off" />
+        <button onclick="app.closeCommandPalette()">Esc</button>
+      </div>
+      <div class="palette-list" id="paletteList"></div>
+    </div>
+  </div>
+
+  <!-- Diff / Compare Tabs Modal -->
+  <div class="modal-backdrop" id="diffModal">
+    <div class="modal-box modal-wide">
+      <div class="modal-header">
+        <span>Compare Tabs (Diff View)</span>
+        <button onclick="app.closeDiffModal()">✕</button>
+      </div>
+      <div class="modal-controls">
+        <label class="inline-label">Left: <select id="diffLeftSelect" onchange="app.renderDiff()"></select></label>
+        <label class="inline-label">Right: <select id="diffRightSelect" onchange="app.renderDiff()"></select></label>
+        <span id="diffStats" class="diff-stats"></span>
+      </div>
+      <div class="diff-output" id="diffOutput"></div>
+    </div>
+  </div>
+
+  <!-- Find & Replace Across All Tabs Modal -->
+  <div class="modal-backdrop" id="searchAllModal">
+    <div class="modal-box modal-wide">
+      <div class="modal-header">
+        <span>Find & Replace Across All Open Tabs</span>
+        <button onclick="app.closeSearchAllModal()">✕</button>
+      </div>
+      <div class="modal-controls" style="flex-wrap:wrap;">
+        <input type="text" id="searchAllQuery" placeholder="Find..." onkeyup="if(event.key==='Enter') app.runSearchAll()" />
+        <input type="text" id="searchAllReplace" placeholder="Replace with..." />
+        <label class="inline-label"><input type="checkbox" id="searchAllCase" /> Aa</label>
+        <label class="inline-label"><input type="checkbox" id="searchAllRegex" /> .*</label>
+        <button class="btn-primary" onclick="app.runSearchAll()">Find All</button>
+        <button class="btn-save" onclick="app.runReplaceAll()">Replace All</button>
+      </div>
+      <div class="search-all-status" id="searchAllStatus">Enter a query to search all open tabs.</div>
+      <div class="file-list" id="searchAllResults"></div>
+    </div>
+  </div>
+
+  <!-- Custom Snippets Manager Modal -->
+  <div class="modal-backdrop" id="snippetsModal">
+    <div class="modal-box modal-wide">
+      <div class="modal-header">
+        <span>Custom Code Snippets Manager</span>
+        <button onclick="app.closeSnippetsModal()">✕</button>
+      </div>
+      <div class="snippet-form">
+        <div class="modal-controls" style="border-bottom:none; padding:0;">
+          <input type="text" id="snippetKeyInput" placeholder="Trigger keyword (e.g. fetchapi)" />
+          <select id="snippetLangInput">
+            <option value="all">All Languages</option>
+            <option value="htmlmixed">HTML</option>
+            <option value="python">Python</option>
+            <option value="javascript">JS / JSON</option>
+            <option value="css">CSS</option>
+            <option value="sql">SQL</option>
+            <option value="markdown">Markdown</option>
+          </select>
+          <button class="btn-save" onclick="app.saveCustomSnippet()">+ Save Snippet</button>
+        </div>
+        <textarea id="snippetBodyInput" rows="4" placeholder="Paste your snippet code here..."></textarea>
+      </div>
+      <div class="file-list" id="snippetsList"></div>
     </div>
   </div>
 
